@@ -4,6 +4,8 @@ title: Variational Autoencoder
 date: 2022-06-05 21:11:23 +0900
 category: deeplearning
 tags : [VariationalAutoencoder, deeplearning]
+comments: true
+use_math: true
 ---
 ## Variational Autoencoder
 
@@ -22,9 +24,55 @@ e-mail : 9965509@naver.com
 ### 특징 
 #### 생성모형으로써 데이터를 생성한다.
    
-   ![generator](../public/img/VA/generator.png)
    
-   위와 같은 생성기(deep learning model)가 있을 때, 생성기는 z라는 잠재변수를 입력으로 받고 데이터 x를 생성한다. 
+   <p align="center"><img src="https://user-images.githubusercontent.com/63538314/172320057-dbb8fe89-ffb0-4be3-8edc-6e21b9ddf6a0.png"></p>
+### <center>생성모형</center>
+<br/>
+<br/>
+   위와 같은 생성기(deep learning model)가 있을 때, 생성기는 z라는 잠재변수를 입력으로 받고 데이터 x를 생성한다. 이때, Variational AutoEncoder를 
+   이해하기위해서, 확률론적 관점으로 생성기를 바라보야한다.  우선 잠재변수 z가 확률변수이고 특정분포 $p(z)$를 가진다고 가정하면, 아래와 같이 표현된다.
+   <br/>
 
-   이것을 확률론적으로 보면 확률변수 z에 대해서 특정분포 $p(z)$로 표현한다.  
-   $z \sim p(z)$
+### <center> $z \sim p(z)$ </center>
+
+   <br/>
+생성기는 이 잠재변수를 입력으로 가지고, 파라미터 $\theta$로 구성된 결정론적인(deterministic) 함수 $g_{\theta}$로 여겨진다. 
+여기서 결정론적이란 의미는 정해진 입력과 파라미터에 대해서 항상 같은 답을 내놓는다는 뜻이다. 이 생성기(생성기 함수)는 잠재변수 z를 함수의 입력으로 받고 데이터를 생성한다. 
+이때, 잠재변수는 확률변수로 정의했기 때문에, 생성기 함수의 출력인 데이터 역시 확률변수가 된다. 
+
+<br/>
+
+### <center> $x = g_{\theta}(z)$ </center>
+
+<br/>
+
+또한 이 잠재변수 z에 대해서 대응되는 실제 데이터 $\hat{x}$(모델이 생성하고자 하는 데이터)와 이상적으로 데이터를 출력하는 모델의 파라미터 $\hat{\theta}$가 있다면, 아래의 식이 성립할 것이다. 
+그리고 이 $\hat{x}$은 잠재변수 z에 대해서 정해진 값으로써, 확률변수가 아닌 실제 관측할 수 있는 값이다.
+
+<br/>
+
+### <center> $\hat{x} = g_{\hat{\theta}}(z)$ </center>
+
+<br/>
+
+잠재 변수 z에 대해서 모델의 출력이 $g_{\theta}(z)$ 이라면, 아래와 같이 실제 데이터$\hat{x}$가 나올 가능도(likelihood)를 구할 수 있다.
+
+<br/>
+
+### <center> $ likelihood : p(\hat{x}|g_{\theta}(z)) = p(\hat{x}|x)$ </center>
+
+<br/>
+
+이러한 가능도는 아래의 그림과 같이 구해지며, 만약에 생성된 x의 확률분포가 실제 $\hat{x}$를 잘 반영한 분포라면, 다음과 같이 가능도가 높을 것이다.
+
+<p align="center"><img src="https://user-images.githubusercontent.com/63538314/172354908-60b7b451-d7d3-4ab4-9d6b-8114bfd12c34.png" width="392" height="470">
+
+</p>
+
+### <center>가우시안 분포 x가 점차 $\hat{x}$의 가능도를 높히는 과정</center>
+
+<br/>
+<br/>
+그래서 생성모델을 학습할 때는 전체 데이터에 대해서 이 가능도를 최대화하도록 모델의 파라미터를 학습하고, 그 결과 파라미터 $\theta$는 $\hat{\theta}$에 가까워진다.
+
+($\theta \rightarrow \hat{\theta}$)
