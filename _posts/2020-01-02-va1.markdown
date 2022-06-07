@@ -5,3 +5,13 @@ date: 2022-06-05 21:11:23 +0900
 category: deeplearning
 ---
 ## Variational Autoencoder
+
+### 안내글
+
+<br/>
+본 글은 NAVER D2의 '오토인코더의 모든 것' 강의 영상을 보며 Variational Autoencoder정리한 글입니다. 
+<br/>
+정리간에 제가 직관적으로 이해가 가지 않는 부분들 역시 추가로 같이 정리하였습니다. 
+만약에 이상한 부분이 있다면 언제든지 아래의 메일로 피드백바랍니다.
+
+e-mail : 9965509@naver.com
