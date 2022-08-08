@@ -1,0 +1,42 @@
+---
+layout: post
+title: DBow2 논문 리뷰 및 기반의 위치 인식 프로그램 제작(3)
+date: 2023-08-08 11:09:23 +0900
+category: SLAM
+tags : [DBoW2, Paper Review]
+comments: true
+use_math: true
+---
+## DBoW2
+
+### 안내글
+
+본 포스트에서는 DBoW2 라이브러리에 대한 사용을 위한 논문인 "Bags of Binary Words for Fast Place Recognition in Image Sequences"의 논문 리뷰를 진행합니다. 
+[이전 포스터](https://jeonhyeongjunkw.github.io/slam/2022/08/05/DBoW2_2.html)에 이어서 계속됩니다.
+
+### 제안방법
+
+### LOOP-Detection Algorithm
+
+#### A Database Query
+
+논문에서는 데이터베이스에 대해서 특정 이미지와 비슷한 이미지를 찾고자 할 때, 저번 포스트에서 다뤘던 데이터베이스를 사용합니다. 데이터베이스에 들어가있는 이미지들은 
+모두 bag-of-words vector $v_i$로 되어있습니다. 데이터베이스에서 특정 $v_t$에 대해서 query<sup>[1](#query)</sup>의 결과는 저번 포스팅에서 소개한 score $s(v_{1},v_{2})$와 관련된 매칭 후보들 $<v_t,v_{t_1}>,<v_t,v_{t_2}>,....$입니다.
+
+<br/>
+
+### <center>   $s(v_1,v_2) = 1-\frac{1}{2}\left\lvert \frac{v_1}{\lvert v_1 \rvert} -\frac{v_2}{\lvert v_2 \rvert}\right\rvert$</center>
+
+<br/>
+
+이 score는 query이미지와 이미지가 가지고 있는 word의 분포에 의존합니다. 그에 따라서 논문에서는 해당 score를 vector $v_t$가 얻으리라고 예상되는 최고 score로 나누는 방식을 사용하였습니다. 그 결과로 정규화된 형태의 유사도 score $\eta$를 얻습니다.아래의 score $\eta$ 식에서 $v_{t-\Delta t})$는 이전 프레임에 대한 bag-of-words vector입니다. 예시로 만약 $s(v_t,v_{t-\Delta t})$가 작다면, 다른 장소이미지에 대한 score $\eta$가 높은 스코어가 많이 나올겁니다. 그래서 논문에서는 최소한의 요구되는 feature를 가지거나 최소 score $s(v_t,v_{t-\Delta t})$에 도달하지 못하는 이미지들은 비교 대상에 제외합니다. 
+
+<br/>
+
+### <center>   $\eta(v_1,v_2) = \frac{s(v_t,v_{t_j})}{s(v_t,v_{t-\Delta t})}$</center>
+
+<br/>
+
+이 논문에서는 너무 낮은 최소 score가 유효한 이미지들을 제외하지 않게하기 위해서, 적당히 작은 score임계값을 사용하였습니다. 그리고 $\eta(v_1,v_2)$가 임계값 $\alpha$을 넘지못하는 경우에는 매칭에서 제외하였습니다.
+
+<a name="vocabulary">[1]query</a> : 데이터베이스 내에서 특정 bag-of-word vector와 유사한 vector를 찾는 것
