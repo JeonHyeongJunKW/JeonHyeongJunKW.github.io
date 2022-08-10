@@ -69,7 +69,7 @@ pre {
 	margin-bottom: 15px;
 	padding-bottom: 10px;
 	padding: 5px;
-	line-height: 2.25;
+	line-height: 2.5;
 }
 
 code {
@@ -208,7 +208,7 @@ article {
 	padding: 0 5% 0;
 	font-size: 17px;
 	margin-bottom: 100px;
-	line-height: 2.25;
+	line-height: 2.5;
 }
 
 article.home div a, article.home pre a { color: #2c3e50; }
@@ -293,7 +293,7 @@ footer {
 	font-size: 0.75em;
 	font-weight: lighter;
 	font-family: "Roboto";
-	line-height: 2.25;
+	line-height: 2.5;
 }
 
 .sidebar-footer a {
@@ -304,7 +304,7 @@ footer {
 @media (max-width: 576px) {
 	article {
 		font-size: 0.9em;
-		line-height: 2.25;
+		line-height: 2.5;
 	}
 
 	.content {
