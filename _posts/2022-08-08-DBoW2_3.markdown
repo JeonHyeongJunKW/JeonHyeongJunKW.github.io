@@ -1,7 +1,7 @@
 ---
 layout: post
 title: DBow2 논문 리뷰 및 기반의 위치 인식 프로그램 제작(3)
-date: 2023-08-08 11:09:23 +0900
+date: 2022-08-12 11:09:23 +0900
 category: SLAM
 tags : [DBoW2, Paper Review]
 comments: true
@@ -29,7 +29,7 @@ use_math: true
 
 <br/>
 
-이 score는 query이미지와 이미지가 가지고 있는 word의 분포에 의존합니다. 그에 따라서 논문에서는 해당 score를 vector $v_t$가 얻으리라고 예상되는 최고 score로 나누는 방식을 사용하였습니다. 그 결과로 정규화된 형태의 유사도 score $\eta$를 얻습니다.아래의 score $\eta$ 식에서 $v_{t-\Delta t})$는 이전 프레임에 대한 bag-of-words vector입니다. 예시로 만약 $s(v_t,v_{t-\Delta t})$가 작다면, 다른 장소이미지에 대한 score $\eta$가 높은 스코어가 많이 나올겁니다. 그래서 논문에서는 최소한의 요구되는 feature를 가지거나 최소 score $s(v_t,v_{t-\Delta t})$에 도달하지 못하는 이미지들은 비교 대상에 제외합니다. 
+이 score는 query이미지와 이미지가 가지고 있는 word의 분포에 의존합니다. 그에 따라서 논문에서는 해당 score를 vector $v_t$가 얻으리라고 예상되는 최고 score로 나누는 방식을 사용하였습니다. 그 결과로 정규화된 형태의 유사도 score $\eta$를 얻습니다.아래의 score $\eta$ 식에서 $v_{t-\Delta t}$는 이전 프레임에 대한 bag-of-words vector입니다. 예시로 만약 $s(v_t,v_{t-\Delta t})$가 작다면, 다른 장소이미지에 대한 score $\eta$가 높은 스코어가 많이 나올겁니다. 그래서 논문에서는 최소한의 요구되는 feature를 가지거나 최소 score $s(v_t,v_{t-\Delta t})$에 도달하지 못하는 이미지들은 비교 대상에 제외합니다. 
 
 <br/>
 
@@ -37,6 +37,40 @@ use_math: true
 
 <br/>
 
-이 논문에서는 너무 낮은 최소 score가 유효한 이미지들을 제외하지 않게하기 위해서, 적당히 작은 score임계값을 사용하였습니다. 그리고 $\eta(v_1,v_2)$가 임계값 $\alpha$을 넘지못하는 경우에는 매칭에서 제외하였습니다.
+이 논문에서는 너무 낮은 최소 score가 유효한 이미지들을 제외하지 않게하기 위해서, 적당히 작은 score임계값 $\alpha$을 사용하였습니다. 그리고 $\eta(v_1,v_2)$가 임계값 $\alpha$을 넘지못하는 경우에는 매칭에서 제외하였습니다.
 
-<a name="vocabulary">[1]query</a> : 데이터베이스 내에서 특정 bag-of-word vector와 유사한 vector를 찾는 것
+<br/>
+
+#### Match Grouping
+
+데이터베이스가 query를 받을 때, 너무 가까운곳에 위치하기 때문에 경쟁하는 이미지들이 생기는 것을 막기 위해서, 논문에서는 이 이미지들을 island라는 단위로 그룹화하고 하나의 매칭으로써 사용을 하였습니다. 논문에서는 하나의 island의 시작과 끝 시간사이의 간격을 $T_i$라고 표현했습니다. 그리고 그들에 대한 word들을 $V_{T_i}$라고 명칭하였습니다. 그래서 특정 $v_t$와 특정 간격에 존재하는 word들 사이의 유사도는 특정 $v_t$와 $V_{T_i}$에 대한 유사도를 검사하는 것으로 치환됩니다. 이걸 $H(v_t,V_{T_i})$라고 합니다. 그래서 가장 높은 H score를 가지는 island가 매칭그룹으로 선정되고, 매칭그룹안에 연속된프레임들에 대해서 temporal consistency step으로 넘어갑니다. 이러한 방식은 넓은 크기를 가지는 long island를 선호하도록 설계됩니다.($H = \sum \eta(v_t,v_{t_j})$, $v_{t_j} \in V_{T_i}$)
+
+<br/>
+
+#### Temporal Consistency 
+
+$v_t$에 대한 가장 매칭성능이 좋은 island $V_{T'}$를 찾은 후에, 논문에서는 이전 query들을 가지고, temporal consistency를 검사합니다. 이 논문에서는 논문 [2](#[2]),논문 [3](#[3])에서 사용된 temporal 제약을 사용하였습니다. 그 제약에서는 match $<v_t, V_{T'}>$는 이전 k개의 매치들이 다음과같이 ($<v_t-\Delta t, V_{T_1}>,$...$,<v_t-k\Delta t, V_{T_k}>$)로 일관되게 매칭되어야합니다. 이 경우 가장 $\eta(v_t,v_{t'})$를 최대화하는 $v_{t'}$를 loop closing 후보로 간주합니다. 이후에 이 후보 이미지는 geometrical verification stage로 넘어갑니다.
+
+<br/>
+
+#### Efficient Geometrical Consistency
+
+이 단계에서는 우선 $I_t$와 $I_{t'}$사이에 적어도 12개 이상의 correspondence를 만족하는 Fundamental matrix를 구해야합니다. 이때, correspondence를 계산하기 위해서 query이미지와 후보 이미지는 대응되는 local feature를 비교해야하는데, 논문에서는 시간복잡도를 줄이기 위해서 direct index를 사용합니다. 논문에서는 vocabulary tree의 특정 층 l에서 같은 노드에 존재하는 local feature 비교하도록 합니다. l이 0일 때는 오직 같은 word에 존재하는 feature간만 비교됩니다. 이 경우에는 비교할 수 있는 word의 수가 적어지기때문에, loop를 고치는게 거절될 수 있습니다. 만약 l이 $L_w$(루트 노드)라면, 기존 알고리즘과 시간복잡도가 같아집니다.논문에서는 오직 fundamental matrix만을 검증을 위해서 요구합니다. 그리고 이것을 계산한다음에, 이미지 사이의 data association을 제공할 수 있습니다. 그래서 만약 이 Fundamental matrix를 만족하는 local feature의 수가 12개 이하라면, loop detection에 실패한 것입니다. 
+
+<br/>
+
+#### 추가적인 내용
+
+geometrical Consistency를 사용한 방식은 매칭쌍에서 epipolar geometry 제약을 만족하는 지 확인을 합니다. 정확히 어떻게 만족하는지 확인하는 내용은 나와있지는 않지만, 제 생각에는 매칭쌍간에 Sampson distance를 사용해서 임계값보다 작은지를 확인해서 inlier를 검출할듯합니다. 보통 3정도로 임계값을 두는데 그렇게 해봐야겟네요.
+
+<br/>
+
+논문의 실험부분은 리뷰에서 제외하고, 다음부터는 이미지 기반의 위치인식 프로그램 제작으로 시작하겠습니다.
+
+<br/>
+
+<a name="query"></a> [1] query : 데이터베이스 내에서 특정 bag-of-word vector와 유사한 vector를 찾는 것
+
+<a name="[2]"></a> [2]: P. Pinies, L. M. Paz, D. G ´ alvez-L ´ opez, and J. D. Tard ´ os, “CI-graph SLAM ´for 3D reconstruction of large and complex environments using a multicamera system,” Int. J. Field Robot., vol. 27, no. 5, pp. 561–586, Sep./Oct. 2010.
+
+<a name="[3]"></a> [3]: C. Cadena, D. Galvez-L ´ opez, J. D. Tard ´ os, and J. Neira, “Robust place ´recognition with stereo sequences,” IEEE Trans. Robot., vol. 28, no. 4, 2012, to be published.
