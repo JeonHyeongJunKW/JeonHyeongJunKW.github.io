@@ -1,0 +1,223 @@
+---
+layout: post
+title: DBow2 논문 리뷰 및 기반의 위치 인식 프로그램 제작(4)
+date: 2022-08-22 15:09:23 +0900
+category: SLAM
+tags : [DBoW2, Library]
+comments: true
+use_math: true
+---
+
+## DBoW2
+
+### 안내글
+
+본 포스트에서는 DBoW2 라이브러리에 대한 주요 클래스 및 내장함수를 설명합니다. 
+
+[DBoW2 github link](https://github.com/dorian3d/DBoW2)
+### 내장 Template parameter
+2개의 main 클래스
+
+- TemplatedVocabulary : 이미지를 bag of word로 바꿔줍니다.
+- TemplatedDatabase : 이것은 이미지를 인덱싱하기위한 데이터베이스입니다.
+
+이 클래스는 다음과같은 형태로 템플릿되어있습니다.
+```C++
+template<class TDescriptor, class F>
+class TemplatedVocabulary
+{
+
+};
+
+template<class TDescriptor, class F>
+class TemplatedDatabase
+{
+
+};
+```
+
+- TDescriptor : 하나의 descriptor vector의 데이터 타입입니다.
+- F : descriptor를 다루기 위한 클래스입니다. 이 클래스 안에 내장함수들은 TDescriptor를 얻을 수 있고, 몇가지 결과를 계산한다. ORB와 BREIF descriptor를 다루는 클래ㅐ스는 이미 DBOW2에 포함되어있다. ex. FORB, FBrief
+
+예를들어서 
+ORB descriptor의 경우 
+- TDescriptor는 32 8bit 값을 가진 한 줄짜리 cv::Mat(CV_8UC1)으로 정의됩니다.(BRIEF의 경우, boost::dynamic_bitset<>으로 정의됩니다.)
+- 이미지에서 feature를 추출 할 때, std::vector<TDescriptor>가 얻어지게됩니다.
+
+
+### 미리정의된 Vocabulary 와 Database
+ORB
+- OrbVocabulary
+- OrbDatabase
+
+### demo 코드 해석
+
+#### 기본 전처리 및 헤더
+```C++
+#include <iostream>
+#include <vector> //word를 담을 때 쓰는 용도인듯합니다.
+
+// DBoW2
+#include "DBoW2.h" // defines OrbVocabulary and OrbDatabase
+
+// OpenCV
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/features2d.hpp>
+
+
+using namespace DBoW2; //name space
+using namespace std;
+```
+
+#### main 함수 
+
+```C++
+int main()
+{
+  vector<vector<cv::Mat > > features;//feature를 저장할 벡터입니다.
+  loadFeatures(features);//feature를 저장합니다.
+
+  testVocCreation(features);//VOC로 만들고, 유사도 확인합니다.
+
+  wait();
+
+  testDatabase(features);//Database로 만들고, 테스트합니다.
+
+  return 0;
+}
+```
+
+### loadFeatures 함수 해석
+
+```C++
+void changeStructure(const cv::Mat &plain, vector<cv::Mat> &out)
+{OrbVocabulary
+  {
+    out[i] = plain.row(i);//한 벡터별로 추가합니다.
+  }
+}
+void loadFeatures(vector<vector<cv::Mat > > &features)
+{
+  features.clear();//벡터를 비우고
+  features.reserve(NIMAGES);//이미지 갯수만큼 채워넣습니다.
+
+  cv::Ptr<cv::ORB> orb = cv::ORB::create();//ORB extractor를 만듭니다.
+
+  cout << "Extracting ORB features..." << endl;
+  for(int i = 0; i < NIMAGES; ++i)
+  {
+    stringstream ss;
+    ss << "images/image" << i << ".png";
+
+    cv::Mat image = cv::imread(ss.str(), 0); //이미지를 읽습니다.
+    cv::Mat mask;//mask는 없습니다.
+    vector<cv::KeyPoint> keypoints; //추출될 키포인트를 담을 벡터입니다.
+    cv::Mat descriptors;//추출될 키포인트의 descriptor를 담을 벡터입니다.
+
+    orb->detectAndCompute(image, mask, keypoints, descriptors); //키포인트를 찾습니다.
+
+    features.push_back(vector<cv::Mat >());//마지막에 원소하나를 추가합니다.
+    changeStructure(descriptors, features.back());//마지막 원소에 mat으로 얻은 descriptor를 벡터의 형태로 추가합니다. 
+  }
+}
+```
+
+### testVocCreation 함수 해석
+```C++
+void testVocCreation(const vector<vector<cv::Mat > > &features)
+{
+  // branching factor and depth levels 
+  const int k = 9;//word의 갯수
+  const int L = 3;//레이어의 수 
+  const WeightingType weight = TF_IDF;//가중치요소
+  const ScoringType scoring = L1_NORM;//노드와의 유사도를 확인하기 위한 metric
+
+  OrbVocabulary voc(k, L, weight, scoring);
+
+  cout << "Creating a small " << k << "^" << L << " vocabulary..." << endl;
+  voc.create(features);//이미지당 feature들의 vector를 저장합니다. 
+  cout << "... done!" << endl;
+
+  cout << "Vocabulary information: " << endl
+  << voc << endl << endl;
+
+  // lets do something with this vocabulary
+  cout << "Matching images against themselves (0 low, 1 high): " << endl;
+  BowVector v1, v2;
+  for(int i = 0; i < NIMAGES; i++)
+  {
+    voc.transform(features[i], v1);//특정 이미지의 벡터모임을 v1으로 변형시킵니다. 
+    for(int j = 0; j < NIMAGES; j++)
+    {
+      voc.transform(features[j], v2);//또 다른 이미지의 벡터모임을 v2으로 변형시킵니다. 
+      
+      double score = voc.score(v1, v2);//유사도를 비교합니다.
+      cout << "Image " << i << " vs Image " << j << ": " << score << endl;
+    }
+  }
+
+  // save the vocabulary to disk
+  cout << endl << "Saving vocabulary..." << endl;
+  voc.save("small_voc.yml.gz");//vocabulary tree를 최종적으로 저장합니다. 이건 descriptor 변환용도입니다.
+  cout << "Done" << endl;
+}
+```
+### testDatabase 함수 해석
+```C++
+void testDatabase(const vector<vector<cv::Mat > > &features)
+{
+  cout << "Creating a small database..." << endl;
+
+  // load the vocabulary from disk
+  OrbVocabulary voc("small_voc.yml.gz"); //vocabulary를 얻어옵니다.
+  
+  OrbDatabase db(voc, false, 0); //DB를 선언합니다. direct index를 같은 노드 찾는데 유용합니다. 이 예제에서는 Geometrical Consistency Check는 안하기 때문에 필요가없습니다.
+  // false = do not use direct index 
+  // (so ignore the last param)
+  // The direct index is useful if we want to retrieve the features that 
+  // belong to some vocabulary node.
+  // db creates a copy of the vocabulary, we may get rid of "voc" now
+
+  // add images to the database
+  for(int i = 0; i < NIMAGES; i++)//feature를 DB에 저장합니다.
+  {
+    db.add(features[i]);
+  }
+
+  cout << "... done!" << endl;
+
+  cout << "Database information: " << endl << db << endl;
+
+  // and query the database
+  cout << "Querying the database: " << endl;
+
+  QueryResults ret;
+  for(int i = 0; i < NIMAGES; i++)
+  {
+    db.query(features[i], ret, 4);//각 이미지에 대해서 query결과를 얻어옵니다. 
+
+    // ret[0] is always the same image in this case, because we added it to the 
+    // database. ret[1] is the second best match.
+
+    cout << "Searching for Image " << i << ". " << ret << endl;// 2번째가 가장 잘맞는 이미지입니다. 
+  }
+
+  cout << endl;
+
+  // we can save the database. The created file includes the vocabulary
+  // and the entries added
+  cout << "Saving database..." << endl;
+  db.save("small_db.yml.gz");//db를 저장합니다.
+  cout << "... done!" << endl;
+  
+  // once saved, we can load it again  
+  cout << "Retrieving database once again..." << endl;
+  OrbDatabase db2("small_db.yml.gz");//저장했던 db를 다시 불러올 수도 있습니다. 
+  cout << "... done! This is: " << endl << db2 << endl;
+}
+```
+
+<br/>
+
+추가적인 코드해석은 제작간에 더 넣겠습니다. 
