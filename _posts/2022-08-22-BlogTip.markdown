@@ -1,0 +1,47 @@
+---
+layout: post
+title: local에서 git blog 수정하기 
+date: 2022-08-22 11:09:23 +0900
+category: Blog
+tags : [Blog,Github]
+comments: true
+---
+### Gitblog를 수정하기 위한 팁들
+
+#### local환경에서 수정하기 위한 방식
+
+1. ruby program을 설치한다.
+```
+sudo apt-get update
+sudo apt-get install ruby ruby-dev make build-essential
+```
+2. ruby의 환경변수를 등록해준다.
+다음 명령어로 .bashrc파일을 연다.
+```
+sudo gedit ~/.bashrc
+```
+편집기의 맨 아래에 다음 환경변수들을 추가한다.
+- export GEM_HOME=$HOME/gems
+- export PATH=$HOME/gems/bin:$PATH
+
+3. 다음 명령어로 다른 터미널에도 등록한다.
+```
+source ~/.bashrc
+```
+4. gem file을 다운로드받아서. 블로그 폴더 안에 넣는다.
+5. 다음  명령어로 Jekyll을 설치한다.
+(첫번째 명령어는 에러로 인해서 추가하였다.)
+```
+gem install public_suffix -v 4.0.7
+gem install bundler -v "$(grep -A 1 "BUNDLED WITH" Gemfile.lock | tail -n 1)"
+gem install jekyll bundler
+bundle install
+```
+
+### 로컬 사이트 접속하기
+
+아래의 명령을 입력하면 다음과같은 창이 나온다. 중간에 인터넷주소를 클릭하여, 블로그에 접속한다.
+```
+bundle exec jekyll serve
+```
+![site](/public/img/Blogtip/website.png)
