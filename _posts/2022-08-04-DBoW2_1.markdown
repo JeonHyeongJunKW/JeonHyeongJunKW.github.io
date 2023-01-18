@@ -1,6 +1,6 @@
 ---
 layout: post
-title: DBow2 논문 리뷰 및 기반의 위치 인식 프로그램 제작(1)
+title: DBoW2 논문 리뷰 및 기반의 위치 인식 프로그램 제작(1)
 date: 2022-08-04 15:30:23 +0900
 category: SLAM
 tags : [DBoW2, Paper Review]

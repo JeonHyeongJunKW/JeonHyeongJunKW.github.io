@@ -1,10 +1,27 @@
 ---
 layout: post
-title: DBow2 논문 리뷰 및 기반의 위치 인식 프로그램 제작(5)
+title: DBoW2 논문 리뷰 및 기반의 위치 인식 프로그램 제작(5)
 date: 2023-01-18 10:09:23 +0900
 category: SLAM
 tags : [DBoW2, Library]
 comments: true
 use_math: true
 ---
+
+[PlaceRecognitonDBoW2 링크](https://github.com/JeonHyeongJunKW/PlaceRecognitonDBoW2)
+
+DBoW2를 활용한 장소 인식 프로그램입니다. 
+
+파이썬의 PyQt를 활용하여 GUI를 구현하였습니다. DBoW2와 그룹단위의 매칭, 기하학적인 검사를 C++코드로 구현된 라이브러리로 만들었습니다. 
+
+### 실행방법
+사용하기 위해서는 아래의 명령어를 입력해야합니다.
+
+```
+sh test.sh
+```
+
+### 자세한 사용법 
+
+(추후 작성예정)
 
