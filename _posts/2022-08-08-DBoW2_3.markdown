@@ -67,7 +67,7 @@ geometrical Consistency를 사용한 방식은 매칭쌍에서 epipolar geometry
 
 논문의 실험부분은 리뷰에서 제외하고, 다음부터는 기존 라이브러리 설명을 위한 내용을 담겠습니다. 
 
-[DBow2 논문 리뷰 및 기반의 위치 인식 프로그램 제작(4)](https://jeonhyeongjunkw.github.io/slam/2022/08/12/DBoW2_4.html)
+[DBow2 논문 리뷰 및 기반의 위치 인식 프로그램 제작(4)](https://jeonhyeongjunkw.github.io/slam/2022/08/22/DBoW2_4.html)
 
 <br/>
 
