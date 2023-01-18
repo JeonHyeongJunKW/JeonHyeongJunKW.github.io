@@ -14,14 +14,15 @@ use_math: true
 
 본 포스트에서는 DBoW2 라이브러리에 대한 주요 클래스 및 내장함수를 설명합니다. 
 
-[DBoW2 github link](https://github.com/dorian3d/DBoW2)
+[DBoW2 라이브러리에 대한 링크](https://github.com/dorian3d/DBoW2)
+
 ### 내장 Template parameter
-2개의 main 클래스
+2가지의 주요 클래스로 다음과 같이 구성됩니다. 이 클래스들은 **이미지들을 bag-of-words vector로 변환하는 visual vocabulary**와 **이미지를 검색(index)하기 위한 데이터베이스**역할을 수행합니다. 
 
 - TemplatedVocabulary : 이미지를 bag of word로 바꿔줍니다.
 - TemplatedDatabase : 이것은 이미지를 인덱싱하기위한 데이터베이스입니다.
 
-이 클래스는 다음과같은 형태로 템플릿되어있습니다.
+이 클래스는 다음과 같은 형태로 템플릿되어있습니다.
 ```C++
 template<class TDescriptor, class F>
 class TemplatedVocabulary
@@ -36,8 +37,8 @@ class TemplatedDatabase
 };
 ```
 
-- TDescriptor : 하나의 descriptor vector의 데이터 타입입니다.
-- F : descriptor를 다루기 위한 클래스입니다. 이 클래스 안에 내장함수들은 TDescriptor를 얻을 수 있고, 몇가지 결과를 계산한다. ORB와 BREIF descriptor를 다루는 클래ㅐ스는 이미 DBOW2에 포함되어있다. ex. FORB, FBrief
+- TDescriptor : descriptor vector의 데이터 타입입니다.
+- F : descriptor를 다루기 위한 함수를 내장한 클래스입니다. 이 클래스의 내장함수들은 TDescriptor를 얻을 수 있고, 몇가지 결과를 계산합니다. 또한 ORB와 BREIF descriptor를 다루는 클래스는 이미 DBOW2에 포함되어있습니다. ex. FORB, FBrief
 
 예를들어서 
 ORB descriptor의 경우 
@@ -50,7 +51,11 @@ ORB
 - OrbVocabulary
 - OrbDatabase
 
-### demo 코드 해석
+### 데모코드 해석
+
+[데모코드](https://github.com/dorian3d/DBoW2/blob/master/demo/demo.cpp)
+
+-----
 
 #### 기본 전처리 및 헤더
 ```C++
@@ -75,15 +80,11 @@ using namespace std;
 ```C++
 int main()
 {
-  vector<vector<cv::Mat > > features;//feature를 저장할 벡터입니다.
+  vector<vector<cv::Mat > > features;//feature를 저장할 이중 벡터를 선언합니다.
   loadFeatures(features);//feature를 저장합니다.
-
   testVocCreation(features);//VOC로 만들고, 유사도 확인합니다.
-
   wait();
-
   testDatabase(features);//Database로 만들고, 테스트합니다.
-
   return 0;
 }
 ```
@@ -92,7 +93,8 @@ int main()
 
 ```C++
 void changeStructure(const cv::Mat &plain, vector<cv::Mat> &out)
-{OrbVocabulary
+{// Mat형태의 입력을 vector형태로 바꿔서 저장합니다. 
+  out.resize(plain.rows);//
   {
     out[i] = plain.row(i);//한 벡터별로 추가합니다.
   }
@@ -100,7 +102,7 @@ void changeStructure(const cv::Mat &plain, vector<cv::Mat> &out)
 void loadFeatures(vector<vector<cv::Mat > > &features)
 {
   features.clear();//벡터를 비우고
-  features.reserve(NIMAGES);//이미지 갯수만큼 채워넣습니다.
+  features.reserve(NIMAGES);//이미지의 수만큼 미리 vector 공간을 선점해둡니다.
 
   cv::Ptr<cv::ORB> orb = cv::ORB::create();//ORB extractor를 만듭니다.
 
@@ -221,3 +223,7 @@ void testDatabase(const vector<vector<cv::Mat > > &features)
 <br/>
 
 추가적인 코드해석은 제작간에 더 넣겠습니다. 
+
+----
+
+제작된 프로그램과 내부 코드 구조 설명은 [DBow2 논문 리뷰 및 기반의 위치 인식 프로그램 제작(5)](https://jeonhyeongjunkw.github.io/slam/2023/01/18/DBoW2_5.html)에서 설명됩니다.
