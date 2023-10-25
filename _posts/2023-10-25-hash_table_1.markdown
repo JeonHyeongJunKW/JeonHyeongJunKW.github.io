@@ -2,8 +2,8 @@
 layout: post
 title: 해시 테이블
 date: 2023-01-18 10:09:23 +0900
-category: Data structure
-tags : [Data structure, Hash table]
+category: DataStructure
+tags : [DataStructure, HashTable]
 comments: true
 use_math: true
 ---
