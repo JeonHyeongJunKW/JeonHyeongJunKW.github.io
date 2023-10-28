@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 해시 테이블
+title: CUDA 키워드 정리
 date: 2023-10-28 19:50:23 +0900
 category: CUDA
 tags : [CUDA, keyword]
