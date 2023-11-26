@@ -1,0 +1,63 @@
+---
+layout: post
+title: Modern c++ 타입별칭, 별칭템플릿
+date: 2023-11-26 17:00:00 +0900
+category: C++
+tags : [C++, typedef, using, template]
+comments: true
+use_math: true
+---
+
+## 작성 이유
+- 코드 작업간에 사용하지만 다소 모호했던 modern c++ 타입별칭, 별칭템플릿을 공부한다.
+
+## typedef에 대한 기본 특징
+- C++에는 typedef를 사용해서 타입 이름 대신 사용할 수 있는 동의어를 생성할 수 있다.
+- 그러나 이것은 탬플릿과 함께 사용해 템플릿 타입 별칭을 만들 수는 없다. ex std::vector<T>는 타입자리 표시자 T가
+  실제 타입으로 바뀔 때 생성될 수 있는 모든 타입의 일종의 패밀리(family)이다.
+- C++11에서 타입 별칭은 이미 선언된 다른 타입의 이름이고, 별칭 템플릿은 이미 선언된 다른 템플릿의 이름이다.
+- 두 별칭의 타입은 모두 새로운 using 구문과 함께 도입됐다.
+
+### 타입 별칭
+- using identifier = type-id 양식으로 타입 별칭을 생성한다.
+  ```c++
+  using byte = unsigned char;
+  using fn = void(byte, double);
+  using array_t = int[10];
+  void func(byte b double d) {/*...*/}
+
+  fn* f = func;
+  ```
+### 별칭 템플릿
+- template<template-params-list> identifier = type-id 양식으로 별칭 템플릿을 생성한다.
+  ```c++
+  template <class T>
+  class custom_allocator { /* ... */};
+
+  template <typename T>
+  using vec_t = std::vector<T, custom_allocator<T>>;
+
+  vec_t<int> vi;
+  vec_t<std::string> vs;
+  ```
+### 유의사항
+- 별칭을 생성할 때 typedef와 using 선언을 함께 사용하지 않는다.
+- using 구문을 사용해 함수 포인터 타입의 이름을 생성한다.
+
+### typedef 선언에 대해서
+- 타입에 대한 동의어를 도입한다.
+- typedef 선언으로 도입된 타입 이름은 식별자 이름과 동일한 숨기기 규칙을 따른다.
+- 예시
+  ```c++
+  typedef unsigned char byte;
+  typedef unsigned char * pbyte;
+  typedef int array_t[10];
+  typedef void(*fn)(byte, double);
+
+  typedef std::vector<int> vint_t;
+  ```
+- 타입 별칭(using) 선언은 typedef와 동일하다. 동일한 블록 범위, 클래스 범위, 네임스페이스 범위에 나타낼 수 있다.
+  그러나 별칭선언은 배열 타입과 함수 포인터 타입의 별칭을 만들 때 별칭이 지정된 실제 타입에 대해 더 읽기 쉽고 명확한다.
+  - array_t를 typedef로 보면 매우 햇갈린다.
+  - fn은 byte와 double 타입의 두 매개변수를 취하는 함수 타입의 이름으로 void를 반환한다. 이는 std::function 객체
+  (std::function<void(byte, double)> f)를 선언하는 구문과도 일치한다.
