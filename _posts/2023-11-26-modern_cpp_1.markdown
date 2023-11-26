@@ -1,0 +1,87 @@
+---
+layout: post
+title: Modern c++ Auto와 제네릭 함수
+date: 2023-11-26 16:13:23 +0900
+category: C++
+tags : [C++, Auto, lambda]
+comments: true
+use_math: true
+---
+
+## 작성 이유
+- 코드 작업간에 사용하지만 다소 모호했던 modern c++ 용어와 auto를 공부한다.
+
+## 용어정리
+- 컨텍스트 타입 : 특정한 변수를 선언하는 등에 사용되는 환경이나 상황
+- 자리 표시자 (placeholder) : 자리 표시자는 대채물이라는 뜻이다. 자리 표시자는 변수의 타입이 들어갈 자리에 놓이게되고, 컴파일러는 초깃값의 타입을 기반으로 자동으로 변수의 타입이 결정되게됨.
+- 후행반환타입(trailing return type) : 함수의 반환타입을 함수 본문뒤에 명시하는 방식(C++ 11부터 가능), auto와 함께 사용가능.
+  ```C++
+  auto function_name(parameter) -> return_type{
+
+  }
+  ```
+- 커밋(commit) : 코드에서 특정한 결정이나 확정을 의미한다. (ㅁ, 변수의 자료형을 결정짓는다든가)
+  - 커밋하지않고, auto를 사용하는 경우
+  ```C++
+  auto i = 42;
+  ```
+  - 커밋하여, auto를 사용하는 경우
+  ```C++
+  auto vi = std::vector<int> {1, 2, 3};
+  ```
+- std::atomic<T> : 다른 쓰레드들에 의해서 안전하게 변환할 수 있도록 사용되는 연산. fetch_add(), load(), store()가 있다.
+- 클로저 : 함수와 외부 변수의 조합, 외부 변수에 대한 참조를 capture한다고 이야기한다.
+
+### auto와 람다 예시
+
+- 람다가 전달 되거나 함수로 반환돼야하는 경우를 제외하고는 auto name = lambdaexpression의 형태로 명명된 람다함수를 선언
+  ```C++
+  auto upper = [](char const c) {return toupper(c);};
+  ```
+- 람다 매개변수를 선언하고 값을 반환하려면 다음과 같이 선언한다.
+  ```C++
+  auto add = [](auto const a, auto const b) {return a + b;};
+  ```
+- 특정 타입에 커밋하고 싶지 않을 때 함수 반환타입을 선언하려면 다음과 같이 수행한다.
+  ```C++
+  template <typename F, typename T>
+  auto apply(F&& f, T value)
+  {
+    return f(value);
+  }
+  ```
+
+### auto의 장점들
+- auto size2 = v.size()와 같이 size_t를 반환하는 변수의 경우에는 auto가 적절할 수 있다. 그냥 int를 쓰면 데이터 손실가능성이 있음.
+- auto를 쓰면 향후 코드가 일반화되고, 변경에 개방적이다. 타이핑을 덜칠 수 있다.
+- auto로 변수를 선언하면 타입이 항상 오른쪽 위치하는 일관된 코딩스타일을 제공
+
+### auto의 단점들
+- const/volatile 또는 참조 타입이 필요한 경우에는 명시적으로 지정해줘야한다.
+  ```C++
+  // ex)
+
+  class foo {
+    int x_;
+  public:
+    foo(int const x = 0) :x_{x} {}
+    int& get() { return x_;}
+  };
+
+  foo f(42);
+  auto& x = f.get(); // 명시적인 &를 써야 f.x_의 값이 바뀜
+  x = 100;
+  std::cout << f.get() << std::endl;
+  ```
+- 이동할 수 없는 타입의 경우 auto를 사용할 수 없다.
+  ```
+  auto ai = std::atomic<int>(42);
+  ```
+
+- decltype(auto)를 사용하면, 명확하게 참조연산자를 받을 수 있게 된다.
+
+### auto와 관련된 중요 용어와 특징
+- 람다는 반환값과 매개변수를 모두 auto로 정의할 수 있는데, 이러한 람다는 람다에 의해 정의된 클로저 타입이 탬플릿 호출 연산자를 가지기 때문에 **제네릭 람다**라고 불린다.
+  ```c++
+  auto ladd = [](auto const a, auto const b) {return a + b;};
+  ```
